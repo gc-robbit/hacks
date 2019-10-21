@@ -14,7 +14,7 @@ class Graph(object):
     """
     Graph acts as a wrapper around Microsoft Graph API with convenience methods to not have to worry about pagination
     etc.
-    Main focus right now is to exract users and their last login details (auditing)
+    Main focus right now is to extract users and their last login details (auditing)
     """
 
     def __init__(self, config):
@@ -46,6 +46,17 @@ class Graph(object):
         # endpoint="/auditLogs/signIns?$filter=userId eq 'object_id' and createdDateTime le 2019-09-01")
         return self._query_for_values(endpoint='/auditLogs/signIns')
 
+    def get_group_name(self, object_id) -> str:
+        display_name = None
+        try:
+            data = self._query(endpoint="/groups/{id}?$select=displayName".format(id=object_id))
+            display_name = data['displayName']
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code != requests.codes.not_found:
+                raise e
+
+        return display_name
+
     def _query_for_values(self, endpoint):
         query_result = self._query(endpoint=endpoint)
         result = []
@@ -65,7 +76,7 @@ class Graph(object):
             request_url = self._remote.format(endpoint=endpoint)
 
         response = requests.get(url=request_url, headers=self.headers)
-        if response.status_code == 429:
+        if response.status_code == requests.codes.too_many_requests:
             # We're throttled! Wait before retrying
             self.logger.debug("Throttled, waiting...")
             time.sleep(10)
@@ -74,11 +85,7 @@ class Graph(object):
         return response.json()
 
 
-def main(args):
-    logger = logging.getLogger("main")
-    logger.setLevel(logging.ERROR)
-
-    graph = Graph(graph_config)
+def users_main(graph, args):
     count = 0
 
     for user in sorted(graph.get_guest_users(), key=lambda u: u['mail']):
@@ -97,11 +104,27 @@ def main(args):
     print("Matched {count} user(s) in total".format(count=count))
 
 
+def groups_main(graph, args):
+    name = graph.get_group_name(args.id)
+    print("Group: {id} has name: '{name}'".format(id=args.id, name=name))
+
+
 if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s')
+    logger = logging.getLogger("main")
+    logger.setLevel(logging.ERROR)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--no-logins", action="store_true", default=False, help="Only output users without any login")
-    args = parser.parse_args()
+    subparsers = parser.add_subparsers()
 
-    main(args)
+    users_parser = subparsers.add_parser('users', help='Commands for interacting with users')
+    users_parser.add_argument("--no-logins", action="store_true", default=False, help="Only users without login")
+    users_parser.set_defaults(func=users_main)
+
+    groups_parser = subparsers.add_parser('groups', help='Commands for interacting with groups')
+    groups_parser.add_argument('id')
+    groups_parser.set_defaults(func=groups_main)
+
+    args = parser.parse_args()
+    graph = Graph(graph_config)
+    args.func(graph, args)
