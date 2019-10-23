@@ -2,37 +2,38 @@
 
 import argparse
 from datetime import datetime
+import json
 import requests
 
 
 class Bitbucket(object):
     # https://docs.atlassian.com/bitbucket-server/rest/6.7.0/bitbucket-rest.html
 
-    def __init__(self, host, auth):
+    def __init__(self, host, token):
         self.base_url = 'https://{host}/rest/api/1.0'.format(host=host)
-        self.auth = auth
+        self.auth_headers = {'Authorization': 'Bearer {token}'.format(token=token)}
 
     def get_users(self):
         url = '{base}/admin/users?limit=1000'.format(base=self.base_url)
-        request = requests.get(url, auth=self.auth)
+        request = requests.get(url, headers=self.auth_headers)
         request.raise_for_status()
         return request.json()['values']
 
     def get_groups(self):
         url = '{base}/admin/groups?limit=1000'.format(base=self.base_url)
-        request = requests.get(url, auth=self.auth)
+        request = requests.get(url, headers=self.auth_headers)
         request.raise_for_status()
         return request.json()['values']
 
     def get_projects(self):
         url = '{base}/projects?limit=1000'.format(base=self.base_url)
-        request = requests.get(url, auth=self.auth)
+        request = requests.get(url, headers=self.auth_headers)
         request.raise_for_status()
         return request.json()['values']
 
     def get_project_group_permissions(self, key):
         url = '{base}/projects/{key}/permissions/groups?limit=1000'.format(base=self.base_url, key=key)
-        request = requests.get(url, auth=self.auth)
+        request = requests.get(url, headers=self.auth_headers)
         request.raise_for_status()
         return request.json()['values']
 
@@ -74,17 +75,23 @@ def display_project_permissions(bitbucket):
                 print("  {name} - {item}".format(name=group_perm['group']['name'], item=group_perm['permission']))
 
 
+def dump_user_emails_in_json(bitbucket):
+    filtered = [u['emailAddress'] for u in bitbucket.get_users()]
+    print(json.dumps(filtered, indent=2))
+
+
 def main(bitbucket):
     # display_users_not_logged_in_for_90_days(bitbucket)
-    display_project_permissions(bitbucket)
+    # display_project_permissions(bitbucket)
+
+    dump_user_emails_in_json(bitbucket)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--host', required=True)
-    parser.add_argument('--user', default='admin')
-    parser.add_argument('--password', required=True)
+    parser.add_argument('--token', required=True)
 
     args = parser.parse_args()
-    bitbucket = Bitbucket(args.host, (args.user, args.password))
+    bitbucket = Bitbucket(args.host, args.token)
     main(bitbucket)
