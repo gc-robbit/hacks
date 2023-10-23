@@ -44,15 +44,14 @@ def _get_version_from_metadata_label(yaml_data):
 
     labels = yaml_data['metadata']['labels']
 
-    if not ('app.kubernetes.io/version' in labels or 'apps.kubernetes.io/version' in labels):
+    if 'app.kubernetes.io/version' in labels:
+        return labels['app.kubernetes.io/version']
+    elif 'apps.kubernetes.io/version' in labels:
+        return labels['apps.kubernetes.io/version']
+    else:
         raise ValueError('Key: app.kubernetes.io/version not found in labels for {name}'.format(
             name=yaml_data['metadata']['name'])
         )
-
-    if 'app.kubernetes.io/version' in labels:
-        return labels['app.kubernetes.io/version']
-    else:
-        return labels['apps.kubernetes.io/version']
 
 
 class AbstractSpider(abc.ABC):
@@ -145,14 +144,14 @@ class DockerHubSpider(AbstractSpider):
 
 class GithubReleaseSpider(AbstractSpider):
     """
-    Retrieve version for the latest release of a Github project using the Github API
+    Retrieve version for the latest release of a GitHub project using the GitHub API
     """
     def __init__(self, owner, repository):
         api = 'https://api.github.com/repos/{owner}/{repository}/releases/latest'
         self.url = api.format(owner=owner, repository=repository)
 
     def get_version(self, beautify):
-        """Response contains a Github release API response and since we request latest the tag_name will correspond
+        """Response contains a GitHub release API response and since we request latest the tag_name will correspond
         to the actual latest available version"""
         response = requests.get(self.url)
         response.raise_for_status()
@@ -161,7 +160,7 @@ class GithubReleaseSpider(AbstractSpider):
 
 class GithubMixedReleaseSpider(AbstractSpider):
     """
-    Github release spider assumes latest is the latest. Some repositories mix multiple major versions in their releases
+    GitHub release spider assumes latest is the latest. Some repositories mix multiple major versions in their releases
     """
     def __init__(self, owner, repository, major):
         api = 'https://api.github.com/repos/{owner}/{repository}/releases'
@@ -213,7 +212,7 @@ class KubernetesVersionLabelSpider(AbstractSpider):
             item=self.item, name=self.name, namespace=self.namespace
         )
         result = subprocess.run(kubectl_command, shell=True, check=True, stdout=subprocess.PIPE, encoding='utf-8')
-        data = yaml.load(result.stdout)
+        data = yaml.load(result.stdout, yaml.SafeLoader)
         return _beautify_version(_get_version_from_metadata_label(data), beautify)
 
 
@@ -234,7 +233,7 @@ class KubernetesImageVersionSpider(AbstractSpider):
             namespace=self.namespace, item=self.item, name=self.name
         )
         result = subprocess.run(kubectl_command, shell=True, check=True, stdout=subprocess.PIPE, encoding='utf-8')
-        data = yaml.load(result.stdout)
+        data = yaml.load(result.stdout, yaml.SafeLoader)
         section = data
         for p in self.pattern.split('.'):
             if isinstance(section, list):
