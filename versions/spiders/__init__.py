@@ -142,7 +142,7 @@ class DockerHubSpider(AbstractSpider):
         return _beautify_version(versions[0], beautify)
 
 
-class GithubReleaseSpider(AbstractSpider):
+class GithubLatestReleaseSpider(AbstractSpider):
     """
     Retrieve version for the latest release of a GitHub project using the GitHub API
     """
