@@ -1,20 +1,12 @@
 versions:
-  - name: Voyager
+  - name: Karpenter
     current:
-      name: DockerfileSpider
+      name: StaticSpider
       params:
-        path: ~/path/to/your/Dockerfile
+        version: 1.0.8
     latest:
-      name: GithubReleaseSpider
+      name: GithubMixedReleaseSpider
       params:
-        owner: appscode
-        repository: voyager
-#  - name: Jenkins
-#    current:
-#      name: DockerfileSpider
-#      params:
-#          path: ~/path/to/your/Dockerfile
-#    latest:
-#      name: JenkinsStableSpider
-#      # This spider does not take arguments
-#      params: {}
+        owner: aws
+        repository: karpenter-provider-aws
+        major: "1."

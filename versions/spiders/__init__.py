@@ -87,7 +87,7 @@ class BitbucketReleaseSpider(AbstractSpider):
     def __init__(self, owner, repository):
         api = "https://api.bitbucket.org/2.0/repositories/{owner}/{repository}/refs/tags?sort=-name&pagelen=100"
         self.url = api.format(owner=owner, repository=repository)
-        self.version_pattern = re.compile('^\d+.\d+.\d+$')
+        self.version_pattern = re.compile(r'^\d+.\d+.\d+$')
 
     def get_version(self, beautify):
         response = requests.get(self.url)
@@ -104,7 +104,7 @@ class DockerfileSpider(AbstractSpider):
     """
     def __init__(self, path):
         self.path = path
-        self.re = re.compile('^FROM .*:v?(\d+.*)$')
+        self.re = re.compile(r'^FROM .*:v?(\d+.*)$')
 
     def get_version(self, beautify):
         """
@@ -130,7 +130,7 @@ class DockerHubSpider(AbstractSpider):
         self.name = name
         api = "https://registry.hub.docker.com/v2/repositories/{owner}/{name}/tags?page_size=100"
         self.url = api.format(owner=self.owner, name=self.name)
-        self.version_pattern = re.compile('^\d+.\d+.\d+(-\d)?$')
+        self.version_pattern = re.compile(r'^\d+.\d+.\d+(-\d)?$')
 
     def get_version(self, beautify):
         response = requests.get(self.url)
@@ -276,3 +276,13 @@ class NASpider(AbstractSpider):
     """
     def get_version(self, beautify):
         return "N/A"
+
+class StaticSpider(AbstractSpider):
+    """
+    StaticSpider simply returns the version you give as input
+    """
+    def __init__(self, version):
+        self.version = version
+
+    def get_version(self, beautify):
+        return _beautify_version(self.version, beautify)
