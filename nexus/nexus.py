@@ -51,5 +51,3 @@ if __name__ == '__main__':
 
     nexus = Nexus(args.username, args.password)
     nexus.clean_releases_matching(args.name, args.version_prefix)
-
-    # ./nexus.py edp/blackbox-exporter v0.12
