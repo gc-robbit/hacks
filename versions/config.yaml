@@ -5,8 +5,15 @@ versions:
       params:
         version: 1.0.8
     latest:
-      name: GithubMixedReleaseSpider
+      name: GithubReleaseSpider
       params:
         owner: aws
         repository: karpenter-provider-aws
-        major: "1."
+  - name: Jenkins
+    current:
+      name: StaticSpider
+      params:
+        version: 1.0.0
+    latest:
+      name: JenkinsStableSpider
+      params: {}
