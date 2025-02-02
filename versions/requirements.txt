@@ -1,5 +1,0 @@
-colorama
-lxml
-natsort
-PyYAML
-requests
