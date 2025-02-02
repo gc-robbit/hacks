@@ -158,14 +158,14 @@ class GithubLatestReleaseSpider(AbstractSpider):
         return _beautify_version(response.json()['tag_name'], beautify)
 
 
-class GithubMixedReleaseSpider(AbstractSpider):
+class GithubPrefixReleaseSpider(AbstractSpider):
     """
-    GitHub release spider assumes latest is the latest. Some repositories mix multiple major versions in their releases
+    Retrieve highest version matching a prefix
     """
-    def __init__(self, owner, repository, major):
+    def __init__(self, owner, repository, prefix):
         api = 'https://api.github.com/repos/{owner}/{repository}/releases'
         self.url = api.format(owner=owner, repository=repository)
-        self.major = major
+        self.prefix = prefix
 
     def get_version(self, beautify):
         response = requests.get(self.url)
@@ -173,7 +173,7 @@ class GithubMixedReleaseSpider(AbstractSpider):
         data = response.json()
         for release in data:
             version = _beautify_version(release['tag_name'], True)
-            if version.startswith(self.major):
+            if version.startswith(self.prefix):
                 return version if beautify else release['tag_name']
 
         raise ValueError("Failed to locate a release matching major version: {major}".format(major=self.major))
