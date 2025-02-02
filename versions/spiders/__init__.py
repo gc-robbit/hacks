@@ -179,6 +179,20 @@ class GithubPrefixReleaseSpider(AbstractSpider):
         raise ValueError("Failed to locate a release matching major version: {major}".format(major=self.major))
 
 
+class GithubReleaseSpider(AbstractSpider):
+    def __init__(self, owner, repository):
+        api = 'https://api.github.com/repos/{owner}/{repository}/releases'
+        self.url = api.format(owner=owner, repository=repository)
+
+    def get_version(self, beautify):
+        response = requests.get(self.url)
+        response.raise_for_status()
+        data = response.json()
+        versions = [release['tag_name'] for release in data]
+        reverse_versions = natsorted(versions, reverse=True)
+        return _beautify_version(reverse_versions[0], beautify)
+
+
 class JenkinsStableSpider(AbstractSpider):
     """
     Retrieve version for the latest stable Jenkins release (parse the published LTS changelog)
