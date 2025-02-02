@@ -208,7 +208,7 @@ class JenkinsStableSpider(AbstractSpider):
         response = requests.get(self.url)
         response.raise_for_status()
         tree = html.fromstring(response.content)
-        version_list = tree.xpath('//div[@class="ratings"]/h3[1]/@id')
+        version_list = tree.xpath('//div[@class="ratings"]//h3[1]/@id')
         return _beautify_version(version_list[0], beautify)
 
 
