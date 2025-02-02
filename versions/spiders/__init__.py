@@ -176,7 +176,7 @@ class GithubPrefixReleaseSpider(AbstractSpider):
             if version.startswith(self.prefix):
                 return version if beautify else release['tag_name']
 
-        raise ValueError("Failed to locate a release matching major version: {major}".format(major=self.major))
+        raise ValueError(f"Failed to locate a release matching prefix: {self.prefix}")
 
 
 class GithubReleaseSpider(AbstractSpider):
