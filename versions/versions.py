@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from typing import Generator
+
 import argparse
 import colorama
 import importlib
@@ -12,12 +14,12 @@ class VersionInfo(object):
 
     output_pattern = '{item.name:<20}{color}{item.current_version:<10}{item.latest_version:<10}{reset}'
 
-    def __init__(self, name, current_version, latest_versions):
+    def __init__(self, name: str, current_version: str, latest_versions: str) -> None:
         self.name = name
         self.current_version = current_version
         self.latest_version = latest_versions
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Colored column console output of this object"""
         color = colorama.Fore.GREEN
         if self.current_version != self.latest_version:
@@ -26,28 +28,27 @@ class VersionInfo(object):
 
 
 class Versions(object):
-    def __init__(self, config_file, beautify):
+    def __init__(self, config_file: str, beautify: bool) -> None:
         self.config = Versions._init(config_file)
         self.beautify = beautify
 
     @staticmethod
-    def _init(config_file):
+    def _init(config_file: str):
         with open(config_file) as stream:
             config_yaml = yaml.safe_load(stream)
 
         return sorted(config_yaml['versions'], key=lambda x: x['name'])
 
-    def scan(self):
+    def scan(self) -> Generator[VersionInfo, None, None]:
         for conf in self.config:
             yield VersionInfo(conf['name'], self.get_version(conf['current']), self.get_version(conf['latest']))
 
-    def get_version(self, config):
+    def get_version(self, config) -> str:
         """
-        Dynamically invoke the spider matching the given config to retrieve version
+        Dynamically invoke the spider matching the given config to retrieve the version
         """
         spider_class = getattr(importlib.import_module("spiders"), config['name'])
         spider = spider_class(**config['params'])
-        version = 'N/A'
         try:
             version = spider.get_version(self.beautify)
         except Exception as e:
