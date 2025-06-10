@@ -3,7 +3,7 @@ versions:
     current:
       name: StaticSpider
       params:
-        version: 1.0.8
+        version: 1.2.0
     latest:
       name: GithubReleaseSpider
       params:
@@ -13,7 +13,7 @@ versions:
     current:
       name: StaticSpider
       params:
-        version: 1.0.0
+        version: 2.504.2
     latest:
       name: JenkinsStableSpider
       params: {}
