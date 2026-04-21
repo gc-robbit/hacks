@@ -47,3 +47,15 @@ The current list of spiders:
 - SonarQubeReleaseSpider
 - NASpider
 - StaticSpider
+
+## Usage
+
+```bash
+uv run versions.py
+```
+
+## Testing
+
+```bash
+uv run pytest
+```
